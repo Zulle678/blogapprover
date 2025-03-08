@@ -69,6 +69,37 @@ class LlamaService:
             logger.error(f"❌ Content revision failed: {str(e)}")
             return original_content
 
+    def analyze_text(self, prompt: str) -> str:
+        """
+        Analyze text using the LLM
+        
+        Args:
+            prompt (str): The prompt for analysis
+            
+        Returns:
+            str: The LLM's response
+        """
+        try:
+            payload = {
+                'model': self.model,
+                'prompt': prompt,
+                'max_tokens': self.context_size
+            }
+            
+            response = requests.post(
+                f"{self.server_url}/api/1.0/text/completion",
+                json=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            
+            result = response.json().get('choices', [{}])[0].get('text', '').strip()
+            return result
+            
+        except Exception as e:
+            logger.error(f"❌ LLM analysis failed: {str(e)}")
+            raise
+
 def get_llama_service():
     """Factory function to create and return a LlamaService instance"""
     return LlamaService()
